@@ -23,8 +23,8 @@ USING delta
 -- COMMAND ----------
 
 -- MAGIC %scala
--- MAGIC val tabla = dbutils.jobs.taskValues.get(taskKey = "2.1.- Workflows", key = "tabla", default = "error")
--- MAGIC val conteo = dbutils.jobs.taskValues.get(taskKey = "2.1.- Workflows", key = "conteo", default = "0")
+-- MAGIC val tabla = dbutils.jobs.taskValues.get(taskKey = "task1", key = "tabla", default = "error")
+-- MAGIC val conteo = dbutils.jobs.taskValues.get(taskKey = "task1", key = "conteo", default = "0")
 
 -- COMMAND ----------
 
@@ -37,3 +37,7 @@ INSERT INTO schema_alejandro.conteos_tablas
 --(NOMBRE_TABLA, NUM_REGISTROS) 
 VALUES
   (tabla, conteo)
+
+-- COMMAND ----------
+
+commit???

@@ -1,10 +1,13 @@
 // Databricks notebook source
 // MAGIC %md
-// MAGIC 1.- Vamos a sacar y guardar en una variable el conteo de la tabla _samples.tpch.nation_ (dada por defecto por databricks).
+// MAGIC 1.- Vamos a sacar y guardar en una variable el conteo de la tabla que pasemos por parámetro a la actividad/task.
+// MAGIC
+// MAGIC [Get task parameter](https://docs.databricks.com/en/dev-tools/databricks-utils.html#widgets-utility-dbutilswidgets)
 
 // COMMAND ----------
 
-val conteo = spark.sql("select count * from samples.tpch.nation")
+val tabla = dbutils.widgets.get("tabla")
+val conteo = spark.sql(s"select count * from {tabla}")
 
 // COMMAND ----------
 
