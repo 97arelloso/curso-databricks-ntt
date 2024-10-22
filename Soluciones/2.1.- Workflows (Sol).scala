@@ -1,6 +1,6 @@
 // Databricks notebook source
 // MAGIC %md
-// MAGIC 1.- Vamos a sacar y guardar en una variable el conteo de la tabla que pasemos por parámetro a la actividad/task.
+// MAGIC 1.- Este notebook se ejecutará desde el Workflow. Ahí se establecerá la variable "tabla", que recogeremos en una variable, sobre la cual ejecutaremos un conteo, que también guardaremos en una variable.
 // MAGIC
 // MAGIC [Get task parameter](https://docs.databricks.com/en/dev-tools/databricks-utils.html#widgets-utility-dbutilswidgets)
 
