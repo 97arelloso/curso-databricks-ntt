@@ -1,6 +1,6 @@
 // Databricks notebook source
 // MAGIC %md
-// MAGIC 1.- Este notebook se ejecutará desde el Workflow. Ahí se establecerá la variable "tabla", que recogeremos en una variable, sobre la cual ejecutaremos un conteo, que también guardaremos en una variable.
+// MAGIC 1.- Este notebook se ejecutará desde el Workflow. Desde el workflow pasaremos la variable "tabla", sobre la cual ejecutaremos un conteo.
 // MAGIC
 // MAGIC [Get task parameter](https://docs.databricks.com/en/dev-tools/databricks-utils.html#widgets-utility-dbutilswidgets)
 
@@ -18,5 +18,5 @@ val conteo = spark.sql(s"select count * from {tabla}")
 
 // COMMAND ----------
 
-dbutils.jobs.taskValues.set(key = "tabla", value = "samples.tpch.nation")
+dbutils.jobs.taskValues.set(key = "tabla", value = tabla)
 dbutils.jobs.taskValues.set(key = "conteo", value = conteo)

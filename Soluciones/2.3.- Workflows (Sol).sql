@@ -30,11 +30,11 @@ USING delta
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC 3.- Insertar los datos obtenidos en la tabla "conteos_tablas".
+-- MAGIC 3.- Insertar un comentario hardcodeado en la tabla "conteos_tablas".
 
 -- COMMAND ----------
 
 INSERT INTO schema_alejandro.conteos_tablas
---(NOMBRE_TABLA, NUM_REGISTROS) 
+--(NOMBRE_TABLA, NUM_REGISTROS, COMENTARIO) 
 VALUES
-  (tabla, conteo)
+  (tabla, conteo, 'La tabla no se ha cargado correctamente')
