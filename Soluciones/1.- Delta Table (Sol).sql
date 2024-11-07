@@ -27,7 +27,7 @@ USE SCHEMA schema_alejandro
 -- COMMAND ----------
 
 CREATE TABLE schema_alejandro.departamentos_delta 
-(ID INT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1), NAME STRING, FLOOR INT)
+(ID LONG GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1), NAME STRING, FLOOR INT)
 USING delta
 
 -- COMMAND ----------
@@ -45,7 +45,7 @@ USING delta
 -- COMMAND ----------
 
 INSERT INTO schema_alejandro.departamentos_delta
---(NAME, FLOOR) 
+(NAME, FLOOR) 
 VALUES
   ("Finanzas", 4), ("D&A", 23), ("RRHH", 2), ("Cafetería", 18), ("Ciberseguridad", 31)
 
@@ -61,10 +61,16 @@ VALUES
 
 -- COMMAND ----------
 
-CREATE TABLE schema_alejandro.departamentos_ext
-(ID INT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1), NAME STRING, FLOOR INT)
+CREATE EXTERNAL LOCATION departamentos_location
+URL 's3://databricks-workspace-stack-83c40-bucket/tablas_externas/departamentos_parquet'
+WITH (STORAGE CREDENTIAL ntt_laboratorio_databricks)
+
+-- COMMAND ----------
+
+CREATE TABLE schema_alejandro.departamentos_external
+(ID LONG , NAME STRING, FLOOR INT)
 USING parquet
-LOCATION "/mnt/data/departamentos_parquet"
+LOCATION "s3://databricks-workspace-stack-83c40-bucket/tablas_externas/departamentos_parquet"
 
 -- COMMAND ----------
 
@@ -80,16 +86,55 @@ LOCATION "/mnt/data/departamentos_parquet"
 
 -- COMMAND ----------
 
-INSERT INTO schema_alejandro.departamentos_ext
---(NAME, FLOOR) 
+INSERT INTO schema_alejandro.departamentos_external
+(ID, NAME, FLOOR) 
 VALUES
-  ("Finanzas", 4), ("D&A", 23), ("RRHH", 2), ("Cafetería", 18), ("Ciberseguridad", 31)
+  (1, "Finanzas", 4), (2, "D&A", 23), (3, "RRHH", 2), (4, "Cafetería", 18), (5, "Ciberseguridad", 31)
 
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ¿Por qué sucede esto? (Diapo nueva, managed vs external)
--- MAGIC > La tabla _departamentos_delta_ es **managed** (formato **delta**), mientras que _departamentos_ext_ es **externa**. Las tablas externas no aceptan las transacciones ACID, mientras que las managed sí.
+-- MAGIC 6.- Actualizar la tabla departamentos_ext para que elimine/actualice la fila de ID 4.
+
+-- COMMAND ----------
+
+UPDATE schema_alejandro.departamentos_external
+SET NAME = 'Cafe'
+WHERE ID = 4
+
+-- COMMAND ----------
+
+DELETE FROM schema_alejandro.departamentos_external
+WHERE ID = 4
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ¿Por qué sucede esto?
+-- MAGIC > La tabla _departamentos_delta_ es **managed** (formato **delta**), mientras que _departamentos_ext_ es **unmanaged** (**externa**). Las tablas externas no aceptan las transacciones ACID, mientras que las managed sí.
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC Vamos a ver cómo se comportan los archivos en las tablas externas. Para ello, hay que sacar el detalle de la tabla.
+-- MAGIC
+-- MAGIC [Databricks Describe Detail](https://docs.databricks.com/en/sql/language-manual/sql-ref-syntax-aux-describe-table.html#describe-detail)
+
+-- COMMAND ----------
+
+DESCRIBE DETAIL schema_alejandro.departamentos_ext
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC Ahora, con la ruta sacada en el paso anterior, se va a sacar un listado de los archivos que hay en esa ruta.
+-- MAGIC
+
+-- COMMAND ----------
+
+LIST 's3://bucket-name/path/to/data'
+%fs ls s3://bucket-name/path/to/data
+dbutils.fs.ls("s3://bucket-name/path/to/data")
 
 -- COMMAND ----------
 
@@ -111,7 +156,9 @@ DESCRIBE DETAIL schema_alejandro.departamentos_delta
 
 -- COMMAND ----------
 
--- MAGIC %fs ls ''
+LIST 's3://bucket-name/path/to/data'
+%fs ls s3://bucket-name/path/to/data
+dbutils.fs.ls("s3://bucket-name/path/to/data")
 
 -- COMMAND ----------
 
