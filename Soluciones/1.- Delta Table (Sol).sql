@@ -110,7 +110,7 @@ WHERE ID = 4
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ¿Por qué sucede esto?
+-- MAGIC #¿Por qué sucede esto?
 -- MAGIC > La tabla _departamentos_delta_ es **managed** (formato **delta**), mientras que _departamentos_ext_ es **unmanaged** (**externa**). Las tablas externas no aceptan las transacciones ACID, mientras que las managed sí.
 
 -- COMMAND ----------
@@ -163,7 +163,7 @@ dbutils.fs.ls("s3://bucket-name/path/to/data")
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC 8.- Actualizar las plantas de todos los departamentos inferiores a la planta 15, aumentando su piso en 1.
+-- MAGIC 8.- Actualizamos las plantas de todos los departamentos inferiores a la planta 15, aumentando su piso en 1.
 -- MAGIC
 -- MAGIC [Databricks Update Table](https://docs.databricks.com/en/sql/language-manual/delta-update.html)
 
@@ -194,9 +194,9 @@ DESCRIBE DETAIL schema_alejandro.departamentos_delta
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ¿Por qué sucede esto?
+-- MAGIC #¿Por qué sucede esto?
 -- MAGIC
--- MAGIC > Las tablas Delta, gracias al **Transaction Log** (también llamado Delta Log) saben qué archivos tienen que leer. Aunque haya más archivos en la ruta, solo se van a leer los correctos. Si se quiere más información sobre el Transaction Log dejo este artículo interesante: https://www.databricks.com/blog/2019/08/21/diving-into-delta-lake-unpacking-the-transaction-log.html
+-- MAGIC > Las tablas Delta, gracias al **Transaction Log** saben qué archivos tienen que leer. Aunque haya más archivos en la ruta, solo se van a leer los correctos. Si se quiere más información sobre el Transaction Log dejo este artículo interesante: https://www.databricks.com/blog/2019/08/21/diving-into-delta-lake-unpacking-the-transaction-log.html
 
 -- COMMAND ----------
 
@@ -249,6 +249,6 @@ DROP TABLE IF EXISTS schema_alejandro.departamentos_ext
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ¿Por qué pasa esto?
+-- MAGIC #¿Por qué sucede esto?
 -- MAGIC
 -- MAGIC > Las tablas externas apuntan a la _location_ que se ha asignado al crear la tabla, y al borrar la tabla no se borran los datos.
