@@ -51,6 +51,10 @@ VALUES
 
 -- COMMAND ----------
 
+DESCRIBE DETAIL schema_alejandro.departamentos_delta
+
+-- COMMAND ----------
+
 -- MAGIC %md
 -- MAGIC 4.- Análogo al paso 2, crear la tabla "**departamentos_ext**" con formato parquet, apuntando a "_/mnt/data/departamentos_parquet_" y sobre nuestro esquema con las siguientes columnas:
 -- MAGIC - ID (identificador único, numérico, incremental)
