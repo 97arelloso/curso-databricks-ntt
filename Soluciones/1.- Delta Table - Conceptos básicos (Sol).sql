@@ -1,5 +1,10 @@
 -- Databricks notebook source
 -- MAGIC %md
+-- MAGIC # CONCEPTOS BÁSICOS
+
+-- COMMAND ----------
+
+-- MAGIC %md
 -- MAGIC 1.- Para comenzar, vamos a crear un esquema propio (_schema_nombre_). Sobre este esquema vamos a realizar todos los ejercicios y, así, no se pisarán las tablas entre esquemas. Luego, vamos a decirle a databricks que use el esquema que acabamos de crear. De este modo, aunque se nos olvide escribir el esquema antes de la tabla, databricks sabrá que nos referimos a nuestro esquema.
 -- MAGIC
 -- MAGIC [Databricks Create Schema](https://docs.databricks.com/en/sql/language-manual/sql-ref-syntax-ddl-create-schema.html)
@@ -23,6 +28,10 @@ USE SCHEMA schema_alejandro
 -- MAGIC - FLOOR (piso en el que se encuentra el departamento, numérico)
 -- MAGIC
 -- MAGIC [Databricks Create Table](https://docs.databricks.com/en/sql/language-manual/sql-ref-syntax-ddl-create-table-using.html)
+
+-- COMMAND ----------
+
+DROP TABLE IF EXISTS schema_alejandro.departamentos_delta
 
 -- COMMAND ----------
 
@@ -89,6 +98,8 @@ VALUES
 
 -- MAGIC %md
 -- MAGIC 6.- Actualizar la tabla departamentos_delta para que se modifique la fila con el ID 4.
+-- MAGIC
+-- MAGIC [Databricks Update Table](https://docs.databricks.com/en/sql/language-manual/delta-update.html)
 
 -- COMMAND ----------
 
@@ -100,6 +111,8 @@ WHERE ID = 4
 
 -- MAGIC %md
 -- MAGIC 7.- Al igual que en el paso anterior, hacer lo mismo con la tabla departamentos_parquet para que actualice la fila con el ID 4.
+-- MAGIC
+-- MAGIC [Databricks Update Table](https://docs.databricks.com/en/sql/language-manual/delta-update.html)
 
 -- COMMAND ----------
 
@@ -118,6 +131,8 @@ WHERE ID = 4
 
 -- MAGIC %md
 -- MAGIC 8.- Vamos a ver qué información nos proporcionan cada una de las tablas. Para este ejercicio necesitaremos las rutas donde se almacenan los datos.
+-- MAGIC
+-- MAGIC [Databricks Describe Table](https://docs.databricks.com/en/sql/language-manual/sql-ref-syntax-aux-describe-table.html)
 
 -- COMMAND ----------
 
@@ -139,12 +154,10 @@ DESCRIBE DETAIL schema_alejandro.departamentos_parquet
 
 -- COMMAND ----------
 
-INTENTAR HACER UN SPARK.SQL DE LA RUTA DE EL ARCHIVO PARQUET QUE HA SIDO ACTUALIZADO, A VER QUE INFO CONTIENE
-
--- COMMAND ----------
-
 -- MAGIC %md
 -- MAGIC 10.- Vamos a actualizar la tabla departamentos_delta para que elimine la fila con el ID 1.
+-- MAGIC
+-- MAGIC [Databricks Delete](https://docs.databricks.com/en/sql/language-manual/delta-delete-from.html)
 
 -- COMMAND ----------
 
@@ -155,7 +168,14 @@ WHERE ID = 1
 
 -- MAGIC %md
 -- MAGIC 11.- Por último, queremos ver qué cambios ha sufrido la tabla.
+-- MAGIC
+-- MAGIC [Databricks Describe Table](https://docs.databricks.com/en/sql/language-manual/sql-ref-syntax-aux-describe-table.html)
 
 -- COMMAND ----------
 
 DESCRIBE HISTORY schema_alejandro.departamentos_delta
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC También se puede revisar mediante **unity catalog**
