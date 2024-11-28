@@ -1,0 +1,54 @@
+-- Databricks notebook source
+-- MAGIC %md
+-- MAGIC # VERSIONES
+-- MAGIC
+-- MAGIC <img src="https://delta.io/static/9c42ea9f028932de03257ed75d35a8ba/cf8e5/image1.png" alt="Image" width="500"/>
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC 1.- Cuando toca hablar de versiones toca ver el historial de cambios de la tabla.
+-- MAGIC
+-- MAGIC [Databricks Describe Table](https://docs.databricks.com/en/delta/history.html#retrieve-delta-table-history)
+
+-- COMMAND ----------
+
+DESCRIBE HISTORY schema_alejandro.departamentos_delta
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC # TIME TRAVEL
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC 2.- Vamos a leer la primera inserción de la tabla.
+-- MAGIC
+-- MAGIC [Read Version](https://docs.databricks.com/en/delta/history.html#delta-time-travel-syntax)
+
+-- COMMAND ----------
+
+SELECT * FROM schema_alejandro.departamentos_delta VERSION AS OF 1
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC 3.- Ahora vamos a leer la versión tras el primer delete, pero vamos a leer por fecha.
+-- MAGIC
+-- MAGIC [Read Version](https://docs.databricks.com/en/delta/history.html#delta-time-travel-syntax)
+
+-- COMMAND ----------
+
+SELECT * FROM schema_alejandro.departamentos_delta TIMESTAMP AS OF '2018-10-18T22:15:12.013Z'
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC 4.- Por último vamos a restaurar la tabla a la versión de la primera inserción.
+-- MAGIC
+-- MAGIC [Restore Version](https://docs.databricks.com/en/delta/history.html#restore-a-delta-table-to-an-earlier-state)
+
+-- COMMAND ----------
+
+RESTORE TABLE schema_alejandro.departamentos_delta TO VERSION AS OF 1
