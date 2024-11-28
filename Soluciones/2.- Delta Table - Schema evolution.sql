@@ -92,14 +92,14 @@ DESCRIBE schema_alejandro.departamentos_parquet
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC 6.- En código Spark vamos a crear un DataFrame que tenga las siguientes columnas: nombre_persona, num_empleado. Y vamos a insertar 2 filas: (Juan, 0021), (Miguel, 0038). Por último, hacemos un append sobre ambas tablas.
+-- MAGIC 6.- En código Spark vamos a crear un DataFrame que tenga las siguientes columnas: id, nombre_persona, cargo. Y vamos a insertar 2 filas: (21052, Juan, IT), (32534, Miguel, Secretaría). Por último, hacemos un append sobre ambas tablas.
 -- MAGIC
 
 -- COMMAND ----------
 
 -- MAGIC %scala
--- MAGIC columns = ["first_name", "favorite_color"]
--- MAGIC data = [("sal", "red"), ("cat", "pink")]
+-- MAGIC columns = ["id", "nombre_persona", "cargo"]
+-- MAGIC data = [("21052", "Juan", "IT"), ("32534", "Miguel", "Secretaría")]
 -- MAGIC rdd = spark.sparkContext.parallelize(data)
 -- MAGIC df = rdd.toDF(columns)
 
@@ -117,6 +117,8 @@ DESCRIBE schema_alejandro.departamentos_parquet
 
 -- MAGIC %md
 -- MAGIC 7.- Comprobamos cómo se han escrito los datos en la tabla _departamentos_parquet_
+-- MAGIC
+-- MAGIC [Databricks Merge Schema](https://docs.databricks.com/en/delta/update-schema.html#enable-schema-evolution)
 
 -- COMMAND ----------
 
@@ -129,3 +131,22 @@ SELECT * FROM schema_alejandro.departamentos_parquet
 -- MAGIC     "schema_alejandro.departamentos_parquet"
 -- MAGIC ).show()
 -- MAGIC spark.read.option("mergeSchema", "true").table("schema_alejandro.departamentos_parquet").show()
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC 8.- Para poder escribir en la tabla _departamentos_delta_ necesitaremos especificarlo explícitamente, así que vamos a probar a hacerlo.
+-- MAGIC
+-- MAGIC [Databricks Merge Schema](https://docs.databricks.com/en/delta/update-schema.html#enable-schema-evolution)
+
+-- COMMAND ----------
+
+-- MAGIC %scala
+-- MAGIC df.write.option("mergeSchema", "true").mode("append").format("delta").save(
+-- MAGIC     "schema_alejandro.departamentos_delta"
+-- MAGIC )
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC # CHECK CONSTRAINTS
