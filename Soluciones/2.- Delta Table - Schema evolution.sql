@@ -68,3 +68,64 @@ ALTER TABLE schema_alejandro.departamentos_parquet ADD COLUMN DEPT_FLOOR INT
 
 -- MAGIC %md
 -- MAGIC AL FINAL VER QUÉ TIENE CADA ARCHIVO PARQUET Y EL DELTA LOG
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC # SCHEMA ENFORCEMENT
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC 5.- Vamos a comprobar cómo funciona el schema enforcement en cada una de las tablas. Para ello primero vamos a ver qué estructura tienen.
+-- MAGIC
+-- MAGIC [Databricks Describe Table](https://docs.databricks.com/en/sql/language-manual/sql-ref-syntax-aux-describe-table.html)
+
+-- COMMAND ----------
+
+DESCRIBE schema_alejandro.departamentos_delta
+
+-- COMMAND ----------
+
+DESCRIBE schema_alejandro.departamentos_parquet
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC 6.- En código Spark vamos a crear un DataFrame que tenga las siguientes columnas: nombre_persona, num_empleado. Y vamos a insertar 2 filas: (Juan, 0021), (Miguel, 0038). Por último, hacemos un append sobre ambas tablas.
+-- MAGIC
+
+-- COMMAND ----------
+
+-- MAGIC %scala
+-- MAGIC columns = ["first_name", "favorite_color"]
+-- MAGIC data = [("sal", "red"), ("cat", "pink")]
+-- MAGIC rdd = spark.sparkContext.parallelize(data)
+-- MAGIC df = rdd.toDF(columns)
+
+-- COMMAND ----------
+
+-- MAGIC %scala
+-- MAGIC df.write.mode("append").insertInto("schema_alejandro.departamentos_delta")
+
+-- COMMAND ----------
+
+-- MAGIC %scala
+-- MAGIC df.write.mode("append").insertInto("schema_alejandro.departamentos_parquet")
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC 7.- Comprobamos cómo se han escrito los datos en la tabla _departamentos_parquet_
+
+-- COMMAND ----------
+
+SELECT * FROM schema_alejandro.departamentos_parquet
+
+-- COMMAND ----------
+
+-- MAGIC %scala
+-- MAGIC spark.read.option("mergeSchema", "true").format("parquet").load(
+-- MAGIC     "schema_alejandro.departamentos_parquet"
+-- MAGIC ).show()
+-- MAGIC spark.read.option("mergeSchema", "true").table("schema_alejandro.departamentos_parquet").show()
