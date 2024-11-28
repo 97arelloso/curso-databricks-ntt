@@ -1,8 +1,6 @@
 -- Databricks notebook source
 -- MAGIC %md
 -- MAGIC # VERSIONES
--- MAGIC
--- MAGIC <img src="https://delta.io/static/9c42ea9f028932de03257ed75d35a8ba/cf8e5/image1.png" alt="Image" width="500"/>
 
 -- COMMAND ----------
 
