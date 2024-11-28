@@ -150,3 +150,32 @@ SELECT * FROM schema_alejandro.departamentos_parquet
 
 -- MAGIC %md
 -- MAGIC # CHECK CONSTRAINTS
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC 9.- Nos surge ahora la necesidad de meter una condición a la tabla a la hora de insertar los datos. No queremos que el piso sea mayor que 30.
+-- MAGIC
+-- MAGIC [Databricks Check Constraints](https://docs.databricks.com/en/tables/constraints.html#set-a-check-constraint-in-databricks)
+
+-- COMMAND ----------
+
+ALTER TABLE schema_alejandro.departamentos_delta ADD CONSTRAINT pisoMenor31 CHECK (DEPT_FLOOR <= 30)
+
+-- COMMAND ----------
+
+ALTER TABLE schema_alejandro.departamentos_delta ADD CONSTRAINT pisoMenorOIgualQue30 CHECK (DEPT_FLOOR <= 30)
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC 10.- Para probar esta funcionalidad, vamos a generar un par de filas: una que cumpla la condición y otra que no.
+-- MAGIC
+-- MAGIC [Databricks Insert Into](https://docs.databricks.com/en/sql/language-manual/sql-ref-syntax-dml-insert-into.html#insert-into)
+
+-- COMMAND ----------
+
+INSERT INTO schema_alejandro.departamentos_delta
+(NAME, FLOOR) 
+VALUES
+  ("Formación", 5), ("Helipuerto", 31)
