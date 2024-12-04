@@ -35,6 +35,6 @@ USING delta
 -- COMMAND ----------
 
 INSERT INTO schema_alejandro.conteos_tablas
---(NOMBRE_TABLA, NUM_REGISTROS) 
+(NOMBRE_TABLA, NUM_REGISTROS, COMENTARIO, FEC_INSERT) 
 VALUES
-  (tabla, conteo)
+  (tabla, conteo, "Datos insertados correctamente", sysdate)

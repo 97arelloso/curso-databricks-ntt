@@ -75,7 +75,7 @@ VACUUM schema_alejandro.prueba_optimize RETAIN 0
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC 7.- Para comprobar qué hemos hecho, vamos a ver el historial de cambios de la tabla.
+-- MAGIC 7.- Para comprobar qué hemos hecho, vamos a ver el historial de cambios de la tabla, además de comprobar el bucket de S3.
 -- MAGIC
 -- MAGIC [Databricks Describe Table](https://docs.databricks.com/en/delta/history.html#retrieve-delta-table-history)
 
