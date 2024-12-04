@@ -40,7 +40,7 @@ VALUES
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC 3.- Supongamos que estos datos son nuevos y hay que insertarlos en la tabla original. Se puede hacer un update y un insert, pero hay una herramienta adecuada para esta tarea, y se trata del **merge**.
+-- MAGIC 3.- Supongamos que estos datos son nuevos y hay que insertarlos en la tabla original. Se puede hacer un update, un insert y un delete por separado, pero hay una herramienta adecuada para esta tarea, y se trata del **merge**.
 -- MAGIC
 -- MAGIC [Databricks Merge](https://docs.databricks.com/en/sql/language-manual/delta-merge-into.html)
 
@@ -65,6 +65,8 @@ WHEN NOT MATCHED
     new.name,
     new.floor
   )
+WHEN NOT MATCHED BY SOURCE THEN
+  DELETE
 
 -- COMMAND ----------
 
@@ -75,6 +77,8 @@ WHEN MATCHED THEN
   UPDATE SET *
 WHEN NOT MATCHED
   THEN INSERT *
+WHEN NOT MATCHED BY SOURCE THEN
+  DELETE
 
 -- COMMAND ----------
 
@@ -127,6 +131,8 @@ RESTORE TABLE schema_alejandro.departamentos_delta TO VERSION AS OF 0
 -- MAGIC       "name" -> "new.name",
 -- MAGIC       "floor" -> "new.floor"
 -- MAGIC     ))
+-- MAGIC   .whenNotMatchedBySource()
+-- MAGIC   .delete()
 -- MAGIC   .execute()
 
 -- COMMAND ----------
@@ -148,4 +154,6 @@ RESTORE TABLE schema_alejandro.departamentos_delta TO VERSION AS OF 0
 -- MAGIC   .updateAll()
 -- MAGIC   .whenNotMatched
 -- MAGIC   .insertAll()
+-- MAGIC   .whenNotMatchedBySource()
+-- MAGIC   .delete()
 -- MAGIC   .execute()
