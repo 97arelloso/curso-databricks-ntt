@@ -76,123 +76,169 @@ ALTER TABLE schema_alejandro.departamentos_external ADD COLUMN DEPT_FLOOR INT
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC # SCHEMA ENFORCEMENT
-
--- COMMAND ----------
-
--- MAGIC %md
--- MAGIC 5.- Vamos a comprobar cómo funciona el schema enforcement en cada una de las tablas. Para ello primero vamos a ver qué estructura tienen.
--- MAGIC
--- MAGIC [Databricks Describe Table](https://docs.databricks.com/en/sql/language-manual/sql-ref-syntax-aux-describe-table.html)
-
--- COMMAND ----------
-
-DESCRIBE schema_alejandro.departamentos_delta
-
--- COMMAND ----------
-
-DESCRIBE schema_alejandro.departamentos_external
-
--- COMMAND ----------
-
--- MAGIC %md
--- MAGIC 6.- En código Spark vamos a crear un DataFrame que tenga las siguientes columnas: id, nombre_persona, cargo. Y vamos a insertar 2 filas: (21052, Juan, IT), (32534, Miguel, Secretaría). Por último, hacemos un append sobre ambas tablas.
--- MAGIC
-
--- COMMAND ----------
-
--- MAGIC %scala
--- MAGIC val columns = Seq("id_dept", "nombre_persona", "cargo")
--- MAGIC val data = Seq(("21052", "Juan", "IT"), ("32534", "Miguel", "Secretaría"))
--- MAGIC val rdd = spark.sparkContext.parallelize(data)
--- MAGIC val df = rdd.toDF(columns:_*)
-
--- COMMAND ----------
-
--- MAGIC %scala
--- MAGIC df.show
-
--- COMMAND ----------
-
--- MAGIC %scala
--- MAGIC df.write.mode("append").insertInto("schema_alejandro.departamentos_delta")
-
--- COMMAND ----------
-
--- MAGIC %scala
--- MAGIC val columns = Seq("id_dept", "nombre_persona", "cargo", "otro")
--- MAGIC val data = Seq(("21052", "Juan", "IT", "a"), ("32534", "Miguel", "Secretaría", "b"))
--- MAGIC val rdd = spark.sparkContext.parallelize(data)
--- MAGIC val df2 = rdd.toDF(columns:_*)
-
--- COMMAND ----------
-
--- MAGIC %scala
--- MAGIC df2.write.mode("append").insertInto("schema_alejandro.departamentos_external")
-
--- COMMAND ----------
-
--- MAGIC %md
--- MAGIC 7.- Comprobamos cómo se han escrito los datos en la tabla _departamentos_parquet_
--- MAGIC
--- MAGIC [Databricks Merge Schema](https://docs.databricks.com/en/delta/update-schema.html#enable-schema-evolution)
-
--- COMMAND ----------
-
-SELECT * FROM schema_alejandro.departamentos_external
-
--- COMMAND ----------
-
--- MAGIC %scala
--- MAGIC spark.read.option("mergeSchema", "true").format("parquet").load(
--- MAGIC     "schema_alejandro.departamentos_external"
--- MAGIC ).show()
--- MAGIC spark.read.option("mergeSchema", "true").table("schema_alejandro.departamentos_external").show()
-
--- COMMAND ----------
-
--- MAGIC %md
--- MAGIC 8.- Para poder escribir en la tabla _departamentos_delta_ necesitaremos especificarlo explícitamente, así que vamos a probar a hacerlo.
--- MAGIC
--- MAGIC [Databricks Merge Schema](https://docs.databricks.com/en/delta/update-schema.html#enable-schema-evolution)
-
--- COMMAND ----------
-
--- MAGIC %scala
--- MAGIC df.write.option("mergeSchema", "true").mode("append").format("delta").save(
--- MAGIC     "schema_alejandro.departamentos_delta"
--- MAGIC )
-
--- COMMAND ----------
-
--- MAGIC %md
 -- MAGIC # CHECK CONSTRAINTS
 
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC 9.- Nos surge ahora la necesidad de meter una condición a la tabla a la hora de insertar los datos. No queremos que el piso sea mayor que 30.
+-- MAGIC 5.- Nos surge ahora la necesidad de meter una condición a la tabla a la hora de insertar los datos. No queremos que el piso sea mayor que 30.
 -- MAGIC
 -- MAGIC [Databricks Check Constraints](https://docs.databricks.com/en/tables/constraints.html#set-a-check-constraint-in-databricks)
 
 -- COMMAND ----------
 
-ALTER TABLE schema_alejandro.departamentos_delta ADD CONSTRAINT pisoMenor31 CHECK (DEPT_FLOOR <= 30)
+ALTER TABLE schema_alejandro.departamentos_DELTA ADD CONSTRAINT pisoMenorOIgualQue30 CHECK (FLOOR <= 30)
 
 -- COMMAND ----------
 
-ALTER TABLE schema_alejandro.departamentos_delta ADD CONSTRAINT pisoMenorOIgualQue30 CHECK (DEPT_FLOOR <= 30)
+ALTER TABLE schema_alejandro.departamentos_external ADD CONSTRAINT pisoMenorOIgualQue30 CHECK (FLOOR <= 30)
 
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC 10.- Para probar esta funcionalidad, vamos a generar un par de filas: una que cumpla la condición y otra que no.
+-- MAGIC 6.- El cliente nos está volviendo locos en este ejercicio... Ahora nos piden que el ID no puede ser mayor de 30.
+-- MAGIC
+-- MAGIC [Databricks Check Constraints](https://docs.databricks.com/en/tables/constraints.html#set-a-check-constraint-in-databricks)
+
+-- COMMAND ----------
+
+ALTER TABLE schema_alejandro.departamentos_delta ADD CONSTRAINT pisoMenor31 CHECK (ID <= 30)
+
+-- COMMAND ----------
+
+ALTER TABLE schema_alejandro.departamentos_external ADD CONSTRAINT pisoMenor31 CHECK (ID <= 30)
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC 7.- Vamos a ver las propiedades de la tabla para comprobar que esté metida la condición.
+
+-- COMMAND ----------
+
+show TBLPROPERTIES schema_alejandro.departamentos_delta
+
+-- COMMAND ----------
+
+show TBLPROPERTIES schema_alejandro.departamentos_external
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC 8.- Para probar esta funcionalidad, vamos a generar un par de filas: una que cumpla la condición y otra que no.
 -- MAGIC
 -- MAGIC [Databricks Insert Into](https://docs.databricks.com/en/sql/language-manual/sql-ref-syntax-dml-insert-into.html#insert-into)
 
 -- COMMAND ----------
 
 INSERT INTO schema_alejandro.departamentos_delta
-(NAME, FLOOR) 
+(ID, DEPT_NAME, DEPT_FLOOR) 
 VALUES
-  ("Formación", 5), ("Helipuerto", 31)
+  (10, "Formación", 5), (31, "Helipuerto", 100)
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC # SCHEMA ENFORCEMENT
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC 9.- En python/scala vamos a crear un DataFrame que tenga las siguientes columnas: nombre (string) y edad (int). Y vamos a insertar un par de filas sobre la ruta /tmp/parquet_table_**nombre**.
+-- MAGIC
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC columns = ["nombre", "edad"]
+-- MAGIC data = [("Celia", 20), ("Paula", 47), ("Ander", 12)]
+-- MAGIC rdd = spark.sparkContext.parallelize(data)
+-- MAGIC df = rdd.toDF(columns)
+-- MAGIC
+-- MAGIC df.write.format("parquet").save("/tmp/parquet_table_alejandro")
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC 10.- Ahora vamos a insertar sobre esa misma tabla otro par de registros, pero las columnas van a ser: nombre (string) y edad (int).
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC columns = ["nombre", "apellido"]
+-- MAGIC data = [("Edu", "Garcia"), ("Maria", "Sanchez")]
+-- MAGIC rdd = spark.sparkContext.parallelize(data)
+-- MAGIC df = rdd.toDF(columns)
+-- MAGIC
+-- MAGIC df.write.mode("append").format("parquet").save("/tmp/parquet_table_alejandro")
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC 11.- Leemos los datos a ver con qué nos encontramos.
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC spark.read.format("parquet").load("/tmp/parquet_table1").show()
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC spark.read.option("mergeSchema", "true").format("parquet").load("/tmp/parquet_table1").show()
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC 12.- Ahora vamos a generar el mismo DataFrame que antes, pero lo vamos a insertar en una tabla delta en la ruta /tmp/delta_table_**nombre**.
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC columns = ["nombre", "edad"]
+-- MAGIC data = [("Celia", 20), ("Paula", 47), ("Ander", 12)]
+-- MAGIC rdd = spark.sparkContext.parallelize(data)
+-- MAGIC df = rdd.toDF(columns)
+-- MAGIC
+-- MAGIC df.write.format("delta").save("/tmp/delta_table_alejandro")
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC 13.- Ahora vamos a insertar sobre esa misma tabla otro par de registros, pero las columnas van a ser: nombre (string) y edad (int).
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC columns = ["nombre", "apellido"]
+-- MAGIC data = [("Edu", "Garcia"), ("Maria", "Sanchez")]
+-- MAGIC rdd = spark.sparkContext.parallelize(data)
+-- MAGIC df = rdd.toDF(columns)
+-- MAGIC
+-- MAGIC df.write.mode("append").format("delta").save("/tmp/delta_table_alejandro")
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC 14.- Para poder escribir en la tabla necesitaremos especificarlo explícitamente, así que vamos a probar a hacerlo.
+-- MAGIC
+-- MAGIC [Databricks Merge Schema](https://docs.databricks.com/en/delta/update-schema.html#enable-schema-evolution)
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC columns = ["nombre", "apellido"]
+-- MAGIC data = [("Edu", "Garcia"), ("Maria", "Sanchez")]
+-- MAGIC rdd = spark.sparkContext.parallelize(data)
+-- MAGIC df = rdd.toDF(columns)
+-- MAGIC
+-- MAGIC df.write.option("mergeSchema", "true").mode("append").format("delta").save("/tmp/delta_table_alejandro")
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC 15.- Leemos los datos a ver con qué nos encontramos.
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC spark.read.format("delta").load("/tmp/delta_table_alejandro").show()
