@@ -120,7 +120,15 @@ DESCRIBE schema_alejandro.departamentos_external
 -- COMMAND ----------
 
 -- MAGIC %scala
--- MAGIC df.write.mode("append").insertInto("schema_alejandro.departamentos_external")
+-- MAGIC val columns = Seq("id_dept", "nombre_persona", "cargo", "otro")
+-- MAGIC val data = Seq(("21052", "Juan", "IT", "a"), ("32534", "Miguel", "Secretaría", "b"))
+-- MAGIC val rdd = spark.sparkContext.parallelize(data)
+-- MAGIC val df2 = rdd.toDF(columns:_*)
+
+-- COMMAND ----------
+
+-- MAGIC %scala
+-- MAGIC df2.write.mode("append").insertInto("schema_alejandro.departamentos_external")
 
 -- COMMAND ----------
 
