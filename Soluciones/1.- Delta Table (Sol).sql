@@ -18,7 +18,7 @@ USE SCHEMA schema_alejandro
 
 -- MAGIC %md
 -- MAGIC 2.- Crear la tabla "**departamentos_delta**" con formato delta sobre nuestro esquema con las siguientes columnas:
--- MAGIC - ID (identificador único, numérico, incremental)
+-- MAGIC - ID (identificador único, numérico)
 -- MAGIC - NAME (nombre del departamento)
 -- MAGIC - FLOOR (piso en el que se encuentra el departamento, numérico)
 -- MAGIC
@@ -31,33 +31,33 @@ DROP TABLE IF EXISTS schema_alejandro.departamentos_delta
 -- COMMAND ----------
 
 CREATE TABLE schema_alejandro.departamentos_delta 
-(ID LONG GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1), NAME STRING, FLOOR INT)
+(ID INT, NAME STRING, FLOOR INT)
 USING delta
 
 -- COMMAND ----------
 
 -- MAGIC %md
 -- MAGIC 3.- Insertar los siguientes departamentos a la tabla generada en el paso anterior:
--- MAGIC - Finanzas | 4
--- MAGIC - D&A | 23
--- MAGIC - RRHH | 2
--- MAGIC - Cafetería | 18
--- MAGIC - Ciberseguridad | 31
+-- MAGIC - 1 | Finanzas | 4
+-- MAGIC - 2 | D&A | 23
+-- MAGIC - 3 | RRHH | 2
+-- MAGIC - 4 | Cafetería | 18
+-- MAGIC - 5 | Ciberseguridad | 31
 -- MAGIC
 -- MAGIC [Databricks Insert Into](https://docs.databricks.com/en/sql/language-manual/sql-ref-syntax-dml-insert-into.html#insert-into)
 
 -- COMMAND ----------
 
 INSERT INTO schema_alejandro.departamentos_delta
-(NAME, FLOOR) 
+(ID, NAME, FLOOR) 
 VALUES
-  ("Finanzas", 4), ("D&A", 23), ("RRHH", 2), ("Cafetería", 18), ("Ciberseguridad", 31)
+  (1, "Finanzas", 4), (2, "D&A", 23), (3, "RRHH", 2), (4, "Cafetería", 18), (5, "Ciberseguridad", 31)
 
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC 4.- Análogo al paso 2, crear la tabla "**departamentos_ext**" con formato parquet, apuntando a "_/mnt/data/departamentos_parquet_" y sobre nuestro esquema con las siguientes columnas:
--- MAGIC - ID (identificador único, numérico, incremental)
+-- MAGIC 4.- Análogo al paso 2, crear la tabla "**departamentos_external**" con formato parquet, apuntando a "s3://databricks-workspace-stack-be532-bucket/tablas_externas/departamentos_parquet_**nombre**" y sobre nuestro esquema con las siguientes columnas:
+-- MAGIC - ID (identificador único, numérico)
 -- MAGIC - NAME (nombre del departamento)
 -- MAGIC - FLOOR (piso en el que se encuentra el departamento, numérico)
 -- MAGIC

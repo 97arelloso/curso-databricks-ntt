@@ -15,7 +15,7 @@ DESCRIBE schema_alejandro.departamentos_delta
 
 -- COMMAND ----------
 
-DESCRIBE schema_alejandro.departamentos_parquet
+DESCRIBE schema_alejandro.departamentos_external
 
 -- COMMAND ----------
 
@@ -26,13 +26,22 @@ DESCRIBE schema_alejandro.departamentos_parquet
 
 -- COMMAND ----------
 
+ALTER TABLE schema_alejandro.departamentos_delta 
+SET TBLPROPERTIES (
+  'delta.minReaderVersion' = '2',
+  'delta.minWriterVersion' = '5',
+  'delta.columnMapping.mode' = 'name'
+);
+
+-- COMMAND ----------
+
 ALTER TABLE schema_alejandro.departamentos_delta RENAME COLUMN NAME TO DEPT_NAME;
 ALTER TABLE schema_alejandro.departamentos_delta RENAME COLUMN FLOOR TO DEPT_FLOOR
 
 -- COMMAND ----------
 
-ALTER TABLE schema_alejandro.departamentos_parquet RENAME COLUMN NAME TO DEPT_NAME;
-ALTER TABLE schema_alejandro.departamentos_parquet RENAME COLUMN FLOOR TO DEPT_FLOOR
+ALTER TABLE schema_alejandro.departamentos_external RENAME COLUMN NAME TO DEPT_NAME;
+ALTER TABLE schema_alejandro.departamentos_external RENAME COLUMN FLOOR TO DEPT_FLOOR
 
 -- COMMAND ----------
 
@@ -47,7 +56,7 @@ ALTER TABLE schema_alejandro.departamentos_delta DROP COLUMN DEPT_FLOOR
 
 -- COMMAND ----------
 
-ALTER TABLE schema_alejandro.departamentos_parquet DROP COLUMN FLOOR
+ALTER TABLE schema_alejandro.departamentos_external DROP COLUMN FLOOR
 
 -- COMMAND ----------
 
@@ -62,12 +71,7 @@ ALTER TABLE schema_alejandro.departamentos_delta ADD COLUMN DEPT_FLOOR INT
 
 -- COMMAND ----------
 
-ALTER TABLE schema_alejandro.departamentos_parquet ADD COLUMN DEPT_FLOOR INT
-
--- COMMAND ----------
-
--- MAGIC %md
--- MAGIC AL FINAL VER QUÉ TIENE CADA ARCHIVO PARQUET Y EL DELTA LOG
+ALTER TABLE schema_alejandro.departamentos_external ADD COLUMN DEPT_FLOOR INT
 
 -- COMMAND ----------
 
@@ -87,7 +91,7 @@ DESCRIBE schema_alejandro.departamentos_delta
 
 -- COMMAND ----------
 
-DESCRIBE schema_alejandro.departamentos_parquet
+DESCRIBE schema_alejandro.departamentos_external
 
 -- COMMAND ----------
 
@@ -98,10 +102,15 @@ DESCRIBE schema_alejandro.departamentos_parquet
 -- COMMAND ----------
 
 -- MAGIC %scala
--- MAGIC columns = ["id", "nombre_persona", "cargo"]
--- MAGIC data = [("21052", "Juan", "IT"), ("32534", "Miguel", "Secretaría")]
--- MAGIC rdd = spark.sparkContext.parallelize(data)
--- MAGIC df = rdd.toDF(columns)
+-- MAGIC val columns = Seq("id_dept", "nombre_persona", "cargo")
+-- MAGIC val data = Seq(("21052", "Juan", "IT"), ("32534", "Miguel", "Secretaría"))
+-- MAGIC val rdd = spark.sparkContext.parallelize(data)
+-- MAGIC val df = rdd.toDF(columns:_*)
+
+-- COMMAND ----------
+
+-- MAGIC %scala
+-- MAGIC df.show
 
 -- COMMAND ----------
 
@@ -111,7 +120,7 @@ DESCRIBE schema_alejandro.departamentos_parquet
 -- COMMAND ----------
 
 -- MAGIC %scala
--- MAGIC df.write.mode("append").insertInto("schema_alejandro.departamentos_parquet")
+-- MAGIC df.write.mode("append").insertInto("schema_alejandro.departamentos_external")
 
 -- COMMAND ----------
 
@@ -122,15 +131,15 @@ DESCRIBE schema_alejandro.departamentos_parquet
 
 -- COMMAND ----------
 
-SELECT * FROM schema_alejandro.departamentos_parquet
+SELECT * FROM schema_alejandro.departamentos_external
 
 -- COMMAND ----------
 
 -- MAGIC %scala
 -- MAGIC spark.read.option("mergeSchema", "true").format("parquet").load(
--- MAGIC     "schema_alejandro.departamentos_parquet"
+-- MAGIC     "schema_alejandro.departamentos_external"
 -- MAGIC ).show()
--- MAGIC spark.read.option("mergeSchema", "true").table("schema_alejandro.departamentos_parquet").show()
+-- MAGIC spark.read.option("mergeSchema", "true").table("schema_alejandro.departamentos_external").show()
 
 -- COMMAND ----------
 
