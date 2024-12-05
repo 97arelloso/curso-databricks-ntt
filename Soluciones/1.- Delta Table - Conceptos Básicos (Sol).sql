@@ -130,15 +130,16 @@ WHERE ID = 4
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ## ¿Por qué sucede esto?
--- MAGIC > La tabla _departamentos_delta_ es **managed** (formato **delta**), mientras que _departamentos_ext_ es **unmanaged** (**externa**). Las tablas externas no aceptan las transacciones ACID, mientras que las managed sí.
+-- MAGIC #¿Qué sucede?
+-- MAGIC > La tabla _departamentos_delta_ está, como su nombre indica, en formato **delta**, mientras que _departamentos_parquet_ está, simplemente, en formato **parquet**. Un archivo parquet es inmutable, así que las tablas en formato parquet, no admiten operaciones del tipo UPDATE/DELETE, puesto que el/los archivo/s parquet afectado/s no pueden tener sus registros modificados. Para realizar esto, habría que volver a escribir la tabla entera.
+-- MAGIC Y, ¿por qué funciona con el formato delta si los archivos también son de tipo parquet? Pues esto ocurre porque el formato delta no modifica un parquet ya creado, si no que genera otro parquet y realiza un borrado lógico del parquet antiguo.
 
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC 8.- Vamos a ver cómo se comportan los archivos en las tablas externas. Para ello, hay que sacar el detalle de la tabla.
+-- MAGIC 8.- Vamos a ver qué información nos proporcionan cada una de las tablas. Para este ejercicio necesitaremos las rutas donde se almacenan los datos.
 -- MAGIC
--- MAGIC [Databricks Describe Detail](https://docs.databricks.com/en/sql/language-manual/sql-ref-syntax-aux-describe-table.html#describe-detail)
+-- MAGIC [Databricks Describe Table](https://docs.databricks.com/en/sql/language-manual/sql-ref-syntax-aux-describe-table.html)
 
 -- COMMAND ----------
 
