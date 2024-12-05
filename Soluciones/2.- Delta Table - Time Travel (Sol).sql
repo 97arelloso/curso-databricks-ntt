@@ -38,7 +38,7 @@ SELECT * FROM schema_alejandro.departamentos_delta VERSION AS OF 1
 
 -- COMMAND ----------
 
-SELECT * FROM schema_alejandro.departamentos_delta TIMESTAMP AS OF '2018-10-18T22:15:12.013Z'
+SELECT * FROM schema_alejandro.departamentos_delta TIMESTAMP AS OF '2024-12-05T15:59:06.000+00:00'
 
 -- COMMAND ----------
 
