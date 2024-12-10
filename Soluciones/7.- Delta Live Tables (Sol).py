@@ -128,14 +128,14 @@ for table, config in tables.items():
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC Creamos una tabla gold
+# MAGIC Necesitamos crear una tabla que nos diga cuántas ardillas hay por parque.
 
 # COMMAND ----------
 
 @dtl.table(
   name="squirrell_count_gold",
-  comment="Información final de los squirrels",
-  table_properties={"layer": "gold", "tables_used": "park-data, squirrell-data, stories"}
+  comment="Información con el número de ardillas por parque",
+  table_properties={"layer": "gold", "tables_used": "park-data, squirrell-data"}
 )
 
 def squirrell_gold():
@@ -144,7 +144,7 @@ def squirrell_gold():
                    .agg(count("squirrell id").alias("squirrell count"))
   )
   dfParkData = (dlt.read("park_data_silver")
-              .select("park id", "park name", "date")
+              .select("park id", "park name")
   )
   return (dfSquirrellCount
           .join(dfParkData, "park id", "left")
@@ -153,13 +153,26 @@ def squirrell_gold():
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC
+# MAGIC También se requiee una sola tabla con toda la infomación disponible de las 3 tablas.
 
 # COMMAND ----------
 
+@dtl.table(
+  name="squirrell_data_gold",
+  comment="Información con toda la información sobre las ardillas, parques e historias",
+  table_properties={"layer": "gold", "tables_used": "park-data, squirrell-data, stories"}
+)
 
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC Ejecutamos la vista materializada
+def squirrell_gold():
+  dfSquirrellData = (dlt.read("squirrell_data_silver")
+  )
+  dfParkData = (dlt.read("park_data_silver")
+              .select("park id", "park name")
+  )
+  dfStoriesData = (dlt.read("stories_silver")
+               .select("park id", "Squirrels, Parks & The City Stories")
+  return (dfSquirrellData
+          .join(dfParkData, "park id", "left")
+          .join(dfStoriesData, "park id", "left")
+          .select("squirrell id", "Primary Fur Color", "Squirrel Latitude (DD.DDDDDD)", "Squirrel Longitude (-DD.DDDDDD)", "park name", "Squirrels, Parks & The City Stories")
+          )
