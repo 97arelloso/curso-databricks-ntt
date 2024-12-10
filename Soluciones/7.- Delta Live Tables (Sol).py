@@ -170,7 +170,7 @@ def squirrell_gold():
 
 # COMMAND ----------
 
-@dtl.table(
+@dlt.table(
   name="squirrell_data_gold",
   comment="Información con toda la información sobre las ardillas, parques e historias",
   table_properties={"layer": "gold", "tables_used": "park_data, squirrell_data, stories"}
