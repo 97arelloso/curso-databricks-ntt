@@ -38,10 +38,11 @@
 
 def bronze_layer(volume, tableName):
     path = f"{volume}/{tableName}"
+    tableNameUnderscore = tableName.replace("-", "_")
 
     @dlt.table(
-        name=f"{tableName}_bronze",
-        comment=f"Bronze layer for {tableName}",
+        name=f"{tableNameUnderscore}_bronze",
+        comment=f"Bronze layer for {tableNameUnderscore}",
         table_properties={"layer": "bronze"}
         )
     def incremental_to_bronze():
@@ -91,14 +92,14 @@ def silver_layer(schema, tableName, pk, sequenceBy, expectations):
 # COMMAND ----------
 
 tables = {
-    "park-data": {
+    "park_data": {
         "pk": "park_id",
         "sequenceBy": "bronze_timestamp"
         "expectations": {
             "valid_pk": "park_id is NOT NULL"
         }
     },
-    "squirrell-data": {
+    "squirrell_data": {
         "pk": "squirrell id",
         "sequenceBy": "bronze_timestamp"
         "expectations": {
@@ -135,7 +136,7 @@ for table, config in tables.items():
 @dtl.table(
   name="squirrell_count_gold",
   comment="Información con el número de ardillas por parque",
-  table_properties={"layer": "gold", "tables_used": "park-data, squirrell-data"}
+  table_properties={"layer": "gold", "tables_used": "park_data, squirrell_data"}
 )
 
 def squirrell_gold():
@@ -160,7 +161,7 @@ def squirrell_gold():
 @dtl.table(
   name="squirrell_data_gold",
   comment="Información con toda la información sobre las ardillas, parques e historias",
-  table_properties={"layer": "gold", "tables_used": "park-data, squirrell-data, stories"}
+  table_properties={"layer": "gold", "tables_used": "park_data, squirrell_data, stories"}
 )
 
 def squirrell_gold():
