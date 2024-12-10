@@ -12,13 +12,31 @@
 # COMMAND ----------
 
 # MAGIC %sql
+# MAGIC CREATE EXTERNAL LOCATION IF NOT EXISTS squirrell_census_location
+# MAGIC URL 's3://databricks-workspace-stack-be532-bucket/squirrell_census'
+# MAGIC WITH (STORAGE CREDENTIAL nttdata_databricks_lab)
+
+# COMMAND ----------
+
+# MAGIC %sql
 # MAGIC CREATE EXTERNAL VOLUME IF NOT EXISTS squirrell_census.squirrell_data
 # MAGIC LOCATION 's3://databricks-workspace-stack-be532-bucket/squirrell_census'
+# MAGIC
 
 # COMMAND ----------
 
 # MAGIC %sql
 # MAGIC LIST '/Volumes/nttdata_databricks_lab/squirrell_census/squirrell_data'
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Imports
+
+# COMMAND ----------
+
+import dlt
+from pyspark.sql import functions as F
 
 # COMMAND ----------
 
@@ -37,7 +55,7 @@
 # COMMAND ----------
 
 def bronze_layer(volume, tableName):
-    path = f"{volume}/{tableName}"
+    path = f"{volume}/{tableName}/*"
     tableNameUnderscore = tableName.replace("-", "_")
 
     @dlt.table(
@@ -50,7 +68,7 @@ def bronze_layer(volume, tableName):
             spark.readStream.format("cloudFiles")
             .option("cloudFiles.format", "csv")
             .load(path)
-            .withColumn("bronze_timestamp", current_timestamp())
+            .withColumn("bronze_timestamp", F.current_timestamp())
         )
 
 # COMMAND ----------
@@ -60,7 +78,7 @@ def bronze_layer(volume, tableName):
 
 # COMMAND ----------
 
-volume = "Volumes/nttdata_databricks_lab/squirrell_census/squirrell_data"
+volume = "/Volumes/nttdata_databricks_lab/squirrell_census/squirrell_data/raw_data"
 
 list_table = dbutils.fs.ls(volume)
 for table in list_table:
@@ -75,38 +93,32 @@ for table in list_table:
 # COMMAND ----------
 
 def silver_layer(schema, tableName, pk, sequenceBy, expectations):
-  @dlt.table(
+  dlt.create_streaming_table(
       name=f"{tableName}_silver",
       comment=f"Silver layer for {tableName}",
       table_properties={"layer": "silver", "primary key": pk},
       expect_all_or_drop=expectations
   )
-
   return dlt.apply_changes(
     target=f"{tableName}_silver",
     source=f"{tableName}_bronze",
     keys=pk,
-    sequence_by=col(sequenceBy)
+    sequence_by=sequenceBy
   )
 
 # COMMAND ----------
 
+schema = "squirrell_census"
+
 tables = {
     "park_data": {
         "pk": "park_id",
-        "sequenceBy": "bronze_timestamp"
+        "sequenceBy": "bronze_timestamp",
         "expectations": {
             "valid_pk": "park_id is NOT NULL"
         }
     },
     "squirrell_data": {
-        "pk": "squirrell id",
-        "sequenceBy": "bronze_timestamp"
-        "expectations": {
-            "valid_pk": "squirrell id is NOT NULL"
-        }
-    },
-    "stories": {
         "pk": "park_id",
         "sequenceBy": "bronze_timestamp",
         "expectations": {
@@ -133,7 +145,7 @@ for table, config in tables.items():
 
 # COMMAND ----------
 
-@dtl.table(
+@dlt.table(
   name="squirrell_count_gold",
   comment="Información con el número de ardillas por parque",
   table_properties={"layer": "gold", "tables_used": "park_data, squirrell_data"}
@@ -142,7 +154,7 @@ for table, config in tables.items():
 def squirrell_gold():
   dfSquirrellCount = (dlt.read("squirrell_data_silver")
                    .groupBy("park id")
-                   .agg(count("squirrell id").alias("squirrell count"))
+                   .agg(F.count("squirrell id").alias("squirrell count"))
   )
   dfParkData = (dlt.read("park_data_silver")
               .select("park id", "park name")
