@@ -23,7 +23,12 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC Ahora vamos a definir la capa "bronze". Van a ser cargas en streaming mediante el Auto Loader de Databricks. Cada tabla va a tener el sufijo "__bronze_" para diferenciar cada capa.
+# MAGIC ### BRONZE LAYER
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC Vamos a definir la capa "bronze". Van a ser cargas en streaming mediante el Auto Loader de Databricks. Cada tabla va a tener el sufijo "__bronze_" para diferenciar cada capa.
 # MAGIC
 # MAGIC [Databricks Auto Loader](https://docs.databricks.com/en/ingestion/cloud-object-storage/auto-loader/index.html)
 # MAGIC
@@ -64,7 +69,7 @@ for table in list_table:
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC
+# MAGIC ### SILVER LAYER
 
 # COMMAND ----------
 
@@ -114,3 +119,47 @@ for table, config in tables.items():
     sequenceBy = config["sequenceBy"]
     expectations = config["expectations"]
     silver_layer(schema, table, primaryKey, sequenceBy, expectations)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### GOLD LAYER
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC Creamos una tabla gold
+
+# COMMAND ----------
+
+@dtl.table(
+  name="squirrell_count_gold",
+  comment="Información final de los squirrels",
+  table_properties={"layer": "gold", "tables_used": "park-data, squirrell-data, stories"}
+)
+
+def squirrell_gold():
+  dfSquirrellCount = (dlt.read("squirrell_data_silver")
+                   .groupBy("park id")
+                   .agg(count("squirrell id").alias("squirrell count"))
+  )
+  dfParkData = (dlt.read("park_data_silver")
+              .select("park id", "park name", "date")
+  )
+  return (dfSquirrellCount
+          .join(dfParkData, "park id", "left")
+          )
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC
+
+# COMMAND ----------
+
+
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC Ejecutamos la vista materializada
