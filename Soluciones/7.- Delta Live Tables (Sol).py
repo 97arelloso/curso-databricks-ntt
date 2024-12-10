@@ -184,6 +184,7 @@ def squirrell_gold():
   )
   dfStoriesData = (dlt.read("stories_silver")
                .select("park id", "Squirrels, Parks & The City Stories")
+  )
   return (dfSquirrellData
           .join(dfParkData, "park id", "left")
           .join(dfStoriesData, "park id", "left")
