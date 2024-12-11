@@ -12,21 +12,20 @@
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC CREATE EXTERNAL LOCATION IF NOT EXISTS squirrell_census_location
-# MAGIC URL 's3://databricks-workspace-stack-be532-bucket/squirrell_census'
+# MAGIC CREATE EXTERNAL LOCATION IF NOT EXISTS squirrel_census_location
+# MAGIC URL 's3://databricks-workspace-stack-be532-bucket/squirrel_census'
 # MAGIC WITH (STORAGE CREDENTIAL nttdata_databricks_lab)
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC CREATE EXTERNAL VOLUME IF NOT EXISTS squirrell_census.squirrell_data
-# MAGIC LOCATION 's3://databricks-workspace-stack-be532-bucket/squirrell_census'
-# MAGIC
+# MAGIC CREATE EXTERNAL VOLUME IF NOT EXISTS squirrel_census.squirrel_data
+# MAGIC LOCATION 's3://databricks-workspace-stack-be532-bucket/squirrel_census'
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC LIST '/Volumes/nttdata_databricks_lab/squirrell_census/squirrell_data'
+# MAGIC LIST '/Volumes/nttdata_databricks_lab/squirrel_census/squirrel_data'
 
 # COMMAND ----------
 
@@ -78,7 +77,7 @@ def bronze_layer(volume, tableName):
 
 # COMMAND ----------
 
-volume = "/Volumes/nttdata_databricks_lab/squirrell_census/squirrell_data/raw_data"
+volume = "/Volumes/nttdata_databricks_lab/squirrel_census/squirrel_data/raw_data"
 
 list_table = dbutils.fs.ls(volume)
 for table in list_table:
@@ -102,8 +101,8 @@ def silver_layer(schema, tableName, pk, sequenceBy, expectations):
   return dlt.apply_changes(
     target=f"{tableName}_silver",
     source=f"{tableName}_bronze",
-    keys=pk,
-    sequence_by=sequenceBy
+    keys=[pk],
+    sequence_by=F.col(sequenceBy)
   )
 
 # COMMAND ----------
@@ -118,7 +117,14 @@ tables = {
             "valid_pk": "park_id is NOT NULL"
         }
     },
-    "squirrell_data": {
+    "squirrel_data": {
+        "pk": "squirrel_id",
+        "sequenceBy": "bronze_timestamp",
+        "expectations": {
+            "valid_pk": "squirrel_id is NOT NULL"
+        }
+    },
+    "stories": {
         "pk": "park_id",
         "sequenceBy": "bronze_timestamp",
         "expectations": {
@@ -146,21 +152,21 @@ for table, config in tables.items():
 # COMMAND ----------
 
 @dlt.table(
-  name="squirrell_count_gold",
+  name="squirrel_count_gold",
   comment="Información con el número de ardillas por parque",
-  table_properties={"layer": "gold", "tables_used": "park_data, squirrell_data"}
+  table_properties={"layer": "gold", "tables_used": "park_data, squirrel_data"}
 )
 
-def squirrell_gold():
-  dfSquirrellCount = (dlt.read("squirrell_data_silver")
-                   .groupBy("park id")
-                   .agg(F.count("squirrell id").alias("squirrell count"))
+def squirrel_gold():
+  dfSquirrelCount = (dlt.read("squirrel_data_silver")
+                   .groupBy("park_id")
+                   .agg(F.count("squirrel_id").alias("squirrel_count"))
   )
   dfParkData = (dlt.read("park_data_silver")
-              .select("park id", "park name")
+              .select("park_id", "park_name")
   )
-  return (dfSquirrellCount
-          .join(dfParkData, "park id", "left")
+  return (dfSquirrelCount
+          .join(dfParkData, "park_id", "left")
           )
 
 # COMMAND ----------
@@ -171,22 +177,26 @@ def squirrell_gold():
 # COMMAND ----------
 
 @dlt.table(
-  name="squirrell_data_gold",
+  name="squirrel_data_gold",
   comment="Información con toda la información sobre las ardillas, parques e historias",
-  table_properties={"layer": "gold", "tables_used": "park_data, squirrell_data, stories"}
+  table_properties={"layer": "gold", "tables_used": "park_data, squirrel_data, stories, squirrel_count_gold"}
 )
 
-def squirrell_gold():
-  dfSquirrellData = (dlt.read("squirrell_data_silver")
+def squirrel_gold():
+  dfSquirrellData = (dlt.read("squirrel_data_silver")
   )
   dfParkData = (dlt.read("park_data_silver")
-              .select("park id", "park name")
+              .select("park_id", "park_name")
   )
   dfStoriesData = (dlt.read("stories_silver")
-               .select("park id", "Squirrels, Parks & The City Stories")
+               .select("park_id", "stories")
+  )
+  dfSquirrelCount = (dlt.read("squirrel_count_gold")
+               .select("park_id", "squirrel_count")
   )
   return (dfSquirrellData
-          .join(dfParkData, "park id", "left")
-          .join(dfStoriesData, "park id", "left")
-          .select("squirrell id", "Primary Fur Color", "Squirrel Latitude (DD.DDDDDD)", "Squirrel Longitude (-DD.DDDDDD)", "park name", "Squirrels, Parks & The City Stories")
+          .join(dfParkData, "park_id", "left")
+          .join(dfStoriesData, "park_id", "left")
+          .join(dfSquirrelCount, "park_id", "left")
+          .select("squirrel_id", "primary_fur_color", "squirrel_latitude", "squirrel_longitude", dfParkData.park_name, "stories", "squirrel_count")
           )
