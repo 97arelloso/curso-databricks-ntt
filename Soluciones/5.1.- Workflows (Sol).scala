@@ -7,7 +7,7 @@
 // COMMAND ----------
 
 val tabla = dbutils.widgets.get("tabla")
-val conteo = spark.sql(f"select count * from {tabla}")
+val conteo = spark.sql(s"select count * from {tabla}")
 
 // COMMAND ----------
 
