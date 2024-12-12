@@ -91,7 +91,7 @@ for table in list_table:
 
 # COMMAND ----------
 
-def silver_layer(schema, tableName, pk, sequenceBy, expectations):
+def silver_layer(tableName, pk, sequenceBy, expectations):
   dlt.create_streaming_table(
       name=f"{tableName}_silver",
       comment=f"Silver layer for {tableName}",
@@ -106,8 +106,6 @@ def silver_layer(schema, tableName, pk, sequenceBy, expectations):
   )
 
 # COMMAND ----------
-
-schema = "squirrell_census"
 
 tables = {
     "park_data": {
@@ -137,7 +135,7 @@ for table, config in tables.items():
     primaryKey = config["pk"]
     sequenceBy = config["sequenceBy"]
     expectations = config["expectations"]
-    silver_layer(schema, table, primaryKey, sequenceBy, expectations)
+    silver_layer(table, primaryKey, sequenceBy, expectations)
 
 # COMMAND ----------
 
