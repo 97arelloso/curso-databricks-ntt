@@ -18,7 +18,7 @@
 # MAGIC - Ejecutar "6.1.- Workflows"
 # MAGIC - Comprobar que el conteo sacado del anterior paso sea mayor que 0 (podemos modificarlo para probar las dos variantes).
 # MAGIC   - Si es true ejecutamos "6.2.- Workflows".
-# MAGIC   - Si es false ejecutamos "6.3.- Workflows" y añadimos una alerta.
+# MAGIC   - Si es false ejecutamos "6.3.- Workflows".
 
 # COMMAND ----------
 
